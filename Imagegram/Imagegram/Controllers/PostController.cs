@@ -34,97 +34,125 @@ namespace Imagegram.Controllers
         [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<ActionResult<PostResponse>> Get([FromRoute] long id)
         {
-            var post = await _postService.GetById(id);
-            var response = new PostResponse
+            try
             {
-                Id = post.Id,
-                Creator = post.Creator,
-                CreatedAt = post.CreatedAt,
-                ImageUrl = post.ImageUrl
-            };
-            return Ok(response);
+                var post = await _postService.GetById(id);
+                var response = new PostResponse
+                {
+                    Id = post.Id,
+                    Creator = post.Creator,
+                    CreatedAt = post.CreatedAt,
+                    ImageUrl = post.ImageUrl
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message == ErrorCodes.ResourceNotFound ? NotFound() : StatusCode(500);
+            }
         }
 
         [HttpGet]
         [ProducesResponseType((int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
-        public ActionResult<IEnumerable<PostWithCommentsResponse>> Get([FromQuery] int? start = null, [FromQuery] int? count= null,
+        public ActionResult<IEnumerable<PostWithCommentsResponse>> Get([FromQuery] int? start = null,
+            [FromQuery] int? count = null,
             [FromQuery] int commentCount = 3)
         {
-            var postList = _postService.GetAll(commentCount, start, count);
-
-            var response = postList.Select(x => new PostWithCommentsResponse
+            try
             {
-                Id = x.Id,
-                Creator = x.Creator,
-                CreatedAt = x.CreatedAt,
-                ImageUrl = x.ImageUrl,
-                CommentResponses = x.Comments.Select(z => new CommentResponse
-                {
-                    Id = z.Id,
-                    Content = z.Content,
-                    Creator = z.Creator,
-                    CreatedAt = z.CreatedAt,
-                    PostId = z.PostId
-                })
-            });
+                var postList = _postService.GetAll(commentCount, start, count);
 
-            return Ok(response);
+                var response = postList.Select(x => new PostWithCommentsResponse
+                {
+                    Id = x.Id,
+                    Creator = x.Creator,
+                    CreatedAt = x.CreatedAt,
+                    ImageUrl = x.ImageUrl,
+                    CommentResponses = x.Comments.Select(z => new CommentResponse
+                    {
+                        Id = z.Id,
+                        Content = z.Content,
+                        Creator = z.Creator,
+                        CreatedAt = z.CreatedAt,
+                        PostId = z.PostId
+                    })
+                });
+
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpGet("{id}/Comments")]
         [ProducesResponseType((int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
-        public async Task<ActionResult<IEnumerable<CommentResponse>>> GetComments([FromRoute] long id, [FromQuery] int? start = null, [FromQuery] int? count= null)
+        [ProducesResponseType((int) HttpStatusCode.BadRequest)]
+        public async Task<ActionResult<IEnumerable<CommentResponse>>> GetComments([FromRoute] long id,
+            [FromQuery] int? start = null, [FromQuery] int? count = null)
         {
-            await _postService.GetById(id);
-
-            var commentList = _commentService.GetByPostId(id, start, count);
-
-            var response = commentList.Select(x => new CommentResponse
+            try
             {
-                Id = x.Id,
-                Content = x.Content,
-                Creator = x.Creator,
-                CreatedAt = x.CreatedAt,
-                PostId = x.PostId
-            });
+                await _postService.GetById(id);
 
-            return Ok(response);
+                var commentList = _commentService.GetByPostId(id, start, count);
+
+                var response = commentList.Select(x => new CommentResponse
+                {
+                    Id = x.Id,
+                    Content = x.Content,
+                    Creator = x.Creator,
+                    CreatedAt = x.CreatedAt,
+                    PostId = x.PostId
+                });
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message == ErrorCodes.ResourceNotFound ? BadRequest() : StatusCode(500);
+            }
         }
 
         [HttpPost]
         [ProducesResponseType((int) HttpStatusCode.Created)]
         [ProducesResponseType((int) HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<ActionResult<PostResponse>> Post([FromForm(Name = "uploadedFile")] IFormFile file,
             [FromHeader(Name = "X-Account-Id")] string accountId)
         {
-            byte[] fileBytes;
-            if (!allowedExtenstions.Contains(Path.GetExtension(file.FileName).ToLower()))
-                throw new Exception(ErrorCodes.UnsupportedFile);
-
-            await using (var ms = new MemoryStream())
+            try
             {
-                file.CopyTo(ms);
-                fileBytes = ms.ToArray();
+                byte[] fileBytes;
+                if (!allowedExtenstions.Contains(Path.GetExtension(file.FileName).ToLower()))
+                    throw new Exception(ErrorCodes.UnsupportedFile);
+
+                await using (var ms = new MemoryStream())
+                {
+                    file.CopyTo(ms);
+                    fileBytes = ms.ToArray();
+                }
+
+                var post = new Post
+                {
+                    Creator = accountId,
+                    ImageStream = fileBytes
+                };
+
+                var response = await _postService.CreatePost(post);
+                var actualResponse = new PostResponse
+                {
+                    Creator = response.Creator,
+                    Id = response.Id,
+                    CreatedAt = response.CreatedAt,
+                    ImageUrl = response.ImageUrl
+                };
+                return CreatedAtAction(nameof(Get), new {id = response.Id}, actualResponse);
             }
-
-            var post = new Post
+            catch (Exception ex)
             {
-                Creator = accountId,
-                ImageStream = fileBytes
-            };
-
-            var response = await _postService.CreatePost(post);
-            var actualResponse = new PostResponse
-            {
-                Creator = response.Creator,
-                Id = response.Id,
-                CreatedAt = response.CreatedAt,
-                ImageUrl = response.ImageUrl
-            };
-            return CreatedAtAction(nameof(Get), new {id = response.Id}, actualResponse);
+                return ex.Message == ErrorCodes.ResourceNotFound ? BadRequest() : StatusCode(500);
+            }
         }
     }
 }

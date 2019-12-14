@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -27,59 +28,78 @@ namespace Imagegram.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType((int) HttpStatusCode.OK)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<ActionResult<CommentResponse>> Get([FromRoute] long id)
         {
-            var comment = await _commentService.GetById(id);
-            var response = new CommentResponse
+            try
             {
-                Id = comment.Id,
-                Content = comment.Content,
-                Creator = comment.Creator,
-                CreatedAt = comment.CreatedAt,
-                PostId = comment.PostId
-            };
-            return Ok(response);
+                var comment = await _commentService.GetById(id);
+                var response = new CommentResponse
+                {
+                    Id = comment.Id,
+                    Content = comment.Content,
+                    Creator = comment.Creator,
+                    CreatedAt = comment.CreatedAt,
+                    PostId = comment.PostId
+                };
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
         }
 
 
         [HttpPost]
         [ProducesResponseType((int) HttpStatusCode.Created)]
         [ProducesResponseType((int) HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<ActionResult<CommentResponse>> Post([FromBody] CommentRequest request,
             [FromHeader(Name = "X-Account-Id")] string accountId)
         {
-            await _postService.GetById(request.PostId);
-
-            var comment = new Comment
+            try
             {
-                Content = request.Content,
-                Creator = accountId,
-                PostId = request.PostId
-            };
+                await _postService.GetById(request.PostId);
 
-            var response = await _commentService.CreateComment(comment);
+                var comment = new Comment
+                {
+                    Content = request.Content,
+                    Creator = accountId,
+                    PostId = request.PostId
+                };
 
-            var actualResponse = new CommentResponse
+                var response = await _commentService.CreateComment(comment);
+
+                var actualResponse = new CommentResponse
+                {
+                    Id = response.Id,
+                    Creator = response.Creator,
+                    CreatedAt = response.CreatedAt,
+                    Content = response.Content,
+                    PostId = response.PostId
+                };
+                return CreatedAtAction(nameof(Get), new {id = response.Id}, actualResponse);
+            }
+            catch (Exception ex)
             {
-                Id = response.Id,
-                Creator = response.Creator,
-                CreatedAt = response.CreatedAt,
-                Content = response.Content,
-                PostId = response.PostId
-            };
-            return CreatedAtAction(nameof(Get), new {id = response.Id}, actualResponse);
+                return ex.Message == ErrorCodes.ResourceNotFound ? BadRequest() : StatusCode(500);
+            }
         }
 
         [HttpDelete("{id}")]
-        [ProducesResponseType((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType((int) HttpStatusCode.BadRequest)]
         public async Task<ActionResult> Delete([FromRoute] long id,
             [FromHeader(Name = "X-Account-Id")] string accountId)
         {
-            await _commentService.DeleteComment(id, accountId);
+            try
+            {
+                await _commentService.DeleteComment(id, accountId);
 
-            return Ok();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return ex.Message == ErrorCodes.ResourceNotFound ? BadRequest() : StatusCode(500);
+            }
         }
     }
 }
