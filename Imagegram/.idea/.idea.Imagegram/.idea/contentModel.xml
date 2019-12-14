@@ -9,12 +9,47 @@
         <e p="appsettings.json" t="Include" />
         <e p="bin" t="ExcludeRecursive" />
         <e p="Controllers" t="Include">
-          <e p="WeatherForecastController.cs" t="Include" />
+          <e p="AccountController.cs" t="Include" />
+          <e p="CommentController.cs" t="Include" />
+          <e p="ImageController.cs" t="Include" />
+          <e p="PostController.cs" t="Include" />
         </e>
+        <e p="Data" t="Include">
+          <e p="Entities" t="Include">
+            <e p="Account.cs" t="Include" />
+            <e p="Comment.cs" t="Include" />
+            <e p="Post.cs" t="Include" />
+          </e>
+          <e p="ImagegramContext.cs" t="Include" />
+        </e>
+        <e p="ErrorCodes.Designer.cs" t="Include" />
+        <e p="ErrorCodes.resx" t="Include" />
         <e p="Imagegram.csproj" t="IncludeRecursive" />
+        <e p="Migrations" t="Include">
+          <e p="20191213163943_imagegraminitial.cs" t="Include" />
+          <e p="20191213163943_imagegraminitial.Designer.cs" t="Include" />
+          <e p="ImagegramContextModelSnapshot.cs" t="Include" />
+        </e>
+        <e p="Models" t="Include">
+          <e p="Account" t="Include">
+            <e p="AccountBase.cs" t="Include" />
+            <e p="AccountRequest.cs" t="Include" />
+            <e p="AccountResponse.cs" t="Include" />
+          </e>
+          <e p="Comment" t="Include">
+            <e p="CommentBase.cs" t="Include" />
+            <e p="CommentRequest.cs" t="Include" />
+            <e p="CommentResponse.cs" t="Include" />
+          </e>
+          <e p="Post" t="Include">
+            <e p="PostRequest.cs" t="Include" />
+            <e p="PostResponse.cs" t="Include" />
+            <e p="PostWithCommentsResponse.cs" t="Include" />
+          </e>
+        </e>
         <e p="obj" t="ExcludeRecursive">
           <e p="Debug" t="Include">
-            <e p="netcoreapp3.0" t="Include">
+            <e p="netcoreapp3.1" t="Include">
               <e p="Imagegram.AssemblyInfo.cs" t="Include" />
             </e>
           </e>
@@ -23,8 +58,32 @@
         <e p="Properties" t="Include">
           <e p="launchSettings.json" t="Include" />
         </e>
+        <e p="ServiceCollectionExtensions.cs" t="Include" />
+        <e p="Services" t="Include">
+          <e p="AccountService.cs" t="Include" />
+          <e p="CommentService.cs" t="Include" />
+          <e p="Contracts" t="Include">
+            <e p="IAccountService.cs" t="Include" />
+            <e p="ICommentService.cs" t="Include" />
+            <e p="IPostService.cs" t="Include" />
+          </e>
+          <e p="Models" t="Include">
+            <e p="Account.cs" t="Include" />
+            <e p="Comment.cs" t="Include" />
+            <e p="Post.cs" t="Include" />
+          </e>
+          <e p="PostService.cs" t="Include" />
+        </e>
         <e p="Startup.cs" t="Include" />
-        <e p="WeatherForecast.cs" t="Include" />
+        <e p="UploadedImages" t="Include">
+          <e p="1d7ed790-66ab-43d7-be47-374eda66d464.jpg" t="Include" />
+          <e p="2455e9b6-85b5-47f6-a073-afb9cf116194.jpg" t="Include" />
+          <e p="366f9422-3e7f-47bb-ba84-7a024d74c1a9.jpg" t="Include" />
+          <e p="42a7b990-0ba4-4fc4-9156-880764e868db.jpg" t="Include" />
+          <e p="8b82f86f-59b5-4a86-9e58-7a947689bf7a.jpg" t="Include" />
+          <e p="9e49198f-2c7d-470d-990b-df4cd21e2fca.jpg" t="Include" />
+          <e p="b19c03a1-2c98-4a3d-aa78-b8198d5d64f7.jpg" t="Include" />
+        </e>
       </e>
       <e p="Imagegram.sln" t="IncludeFlat" />
       <e p="packages" t="ExcludeRecursive" />
